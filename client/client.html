@@ -10,7 +10,59 @@
          online at your node.js address under /socket.io/socket.io.js 
          You can disable that on the server if desired
     -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    <script type="text/babel">
+        
+        const sendButton = document.querySelector("#send");
+        const message = document.querySelector("#message");
+        let socket;
+
+        const connectSocket = (e) => {
+            const chat = document.querySelector("#chat");
+            socket = io.connect();
+            
+            socket.on('connect', () => {
+                console.log('connecting');
+                
+                let user = document.querySelector("#username").value;
+                
+                if(!user) {
+                    user = 'unknown';
+                }
+                
+                socket.emit('join', { name: user });
+                
+                sendButton.onclick = send;
+            });
+            
+            socket.on('msg', (data) => {
+                console.log(data);
+                if(data.msg == "/me dances"){
+                    chat.value += data.name + " dances! Look at 'em go!\n";
+                } else if (data.msg == "/rolldie") {
+                    chat.value += data.name + " rolls a D6! They rolled " + data.roll + "\n";
+                } else if (data.msg == "/delete") {
+                    chat.value = "Gone!\n";
+                } else {
+                    chat.value += data.name + ": " + data.msg + "\n";
+                }
+            });
+        };
+
+        const send = () => {
+            socket.emit('msgToServer', { msg: message.value, });
+            message.value = "";
+        };
+
+        const init = () => {
+            const connect = document.querySelector("#connect");
+            connect.addEventListener('click', connectSocket);
+        };
+
+        window.onload = init;
+        
+    </script>
 	<style>
 		textarea {
 			display: block;
